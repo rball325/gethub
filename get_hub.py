@@ -13,10 +13,15 @@ def monitor():
 
     fd = '/var/log/monitoring'
     if not os.path.exists(fd): os.mkdir(fd)
-    fn = os.path.join(fd, time.strftime('%Y-%m-%d_%H-%M-%S') + '.csv')
+    now = time.strftime('%Y-%m-%d_%H-%M-%S')
+    fn = os.path.join(fd, now + '.csv')
+    efn = os.path.join(fd, now + '.err')
 #    fn = 'test.csv'
+#    efn = 'test.err'
 
-    with open(fn, 'w') as f:
+    t_last = '75'
+
+    with open(fn, 'w') as f, open(efn, 'w') as ef:
         while True:
             with urllib.request.urlopen(req) as response:
                 record = []
@@ -39,8 +44,10 @@ def monitor():
                                 temp = attr['temperature']
                                 t = float(temp)
                                 if t < 0 or t > 200:
-                                    print(f"ERROR at {t_read}: {json.dumps(item, indent=4)}", file=f)
+                                    print(f"ERROR at {t_read}: {json.dumps(item, indent=4)}", file=ef)
+                                    temp = t_last
                                 record.append(temp)
+                                t_last = temp
                 if len(record) == 0:
                     print(*header, file=f, sep=",", end="\n", flush=True)
                 else:
