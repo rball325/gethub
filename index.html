@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV Interactive Line Graph Generator</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <h1>CSV Interactive Line Graph Generator</h1>
+    <form id="upload-form" enctype="multipart/form-data">
+        <label for="file">Choose a CSV file:</label>
+        <input type="file" id="file" name="file">
+        <button type="submit">Generate Interactive Line Graph</button>
+    </form>
+    <div id="graph"></div>
+
+    <script>
+        document.getElementById('upload-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const fileInput = document.getElementById('file');
+            if (fileInput.files.length === 0) {
+                alert('No file selected');
+                return;
+            }
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            const response = await fetch('/upload', {
+                method: 'POST',
+                body: formData
+            });
+            if (!response.ok) {
+                alert('Failed to upload file');
+                return;
+            }
+            const data = await response.json();
+            const x = data[Object.keys(data)[0]];
+            const traces = Object.keys(data).slice(1).map(key => ({
+                x: x,
+                y: data[key],
+                mode: 'lines',
+                name: key
+            }));
+
+            const layout = {
+                title: 'Interactive Line Graph',
+                xaxis: {
+                    title: Object.keys(data)[0]
+                },
+                yaxis: {
+                    title: 'Values'
+                }
+            };
+
+            Plotly.newPlot('graph', traces, layout);
+        });
+    </script>
+</body>
+</html>
