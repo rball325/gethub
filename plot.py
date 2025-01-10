@@ -1,27 +1,90 @@
-from flask import Flask, request, send_from_directory, jsonify
+from flask import Flask, request, send_from_directory, jsonify, render_template_string
 import pandas as pd
 import os
 
 app = Flask(__name__)
 
+# Directory where CSV files are stored
+CSV_DIR = '/var/log/monitoring'
+
 @app.route('/')
 def home():
-    return send_from_directory('.', 'index.html')
+    files = os.listdir(CSV_DIR)
+    csv_files = [f for f in files if f.endswith('.csv')]
+    return render_template_string('''
+        <h1>CSV Interactive Line Graph Generator</h1>
+        <form id="file-select-form">
+            <label for="file">Choose a CSV file:</label>
+            <select id="file" name="file">
+                {% for file in csv_files %}
+                    <option value="{{ file }}">{{ file }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">Generate Interactive Line Graph</button>
+        </form>
+        <div id="graph"></div>
 
-@app.route('/upload', methods=['POST'])
-def upload():
-    if 'file' not in request.files:
-        return 'No file part', 400
-    file = request.files['file']
-    if file.filename == '':
-        return 'No selected file', 400
-    df = pd.read_csv(file)
+        <script>
+            document.getElementById('file-select-form').addEventListener('submit', async function (e) {
+                e.preventDefault();
+                const selectElement = document.getElementById('file');
+                const selectedFile = selectElement.value;
+
+                const response = await fetch('/data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ file: selectedFile })
+                });
+
+                if (!response.ok) {
+                    alert('Failed to retrieve data');
+                    return;
+                }
+
+                const data = await response.json();
+                const x = data[Object.keys(data)[0]];
+                const traces = Object.keys(data).slice(1).map(key => ({
+                    x: x,
+                    y: data[key],
+                    mode: 'lines',
+                    name: key
+                }));
+
+                const layout = {
+                    title: 'Interactive Line Graph',
+                    xaxis: {
+                        title: Object.keys(data)[0]
+                    },
+                    yaxis: {
+                        title: 'Values'
+                    }
+                };
+
+                Plotly.newPlot('graph', traces, layout);
+            });
+        </script>
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    ''', csv_files=csv_files)
+
+@app.route('/data', methods=['POST'])
+def get_data():
+    data = request.get_json()
+    file_name = data.get('file')
+    if not file_name:
+        return 'No file selected', 400
+
+    file_path = os.path.join(CSV_DIR, file_name)
+    if not os.path.exists(file_path):
+        return 'File not found', 404
+
+    df = pd.read_csv(file_path)
     data = df.to_dict(orient='list')
     return jsonify(data)
 
-@app.route('/<path:path>')
-def static_files(path):
-    return send_from_directory('.', path)
-
 if __name__ == '__main__':
+    # Ensure the CSV_DIR exists
+    if not os.path.exists(CSV_DIR):
+        os.makedirs(CSV_DIR)
     app.run(host='0.0.0.0', port=5000, debug=True)
