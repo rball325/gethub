@@ -1,3 +1,4 @@
+# Install this file at /usr/lib/systemd/system/monitoring.service
 [Unit]
 Description=Home temperature monitoring
 After=network.target
