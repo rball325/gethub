@@ -23,37 +23,43 @@ def monitor():
 
     with open(fn, 'w') as f, open(efn, 'w') as ef:
         while True:
-            with urllib.request.urlopen(req) as response:
-                record = []
-                page = response.read()
-                t_read = time.strftime('%m/%d/%Y %H:%M:%S')
-                #print(f"response = {page}")
-                data = json.loads(page.decode('utf-8'))
-                #print(json.dumps(data[0], indent=4))
-                for item in data:
-                    if 'label' in item and 'attributes' in item:
-                        label = item['label']
-                        attr = item['attributes']
-                        if 'temperature' in attr:
-                            if not label in header:
-                                header.append(label)
-                                #print(f"header = {header}")
-                            else:
-                                if len(record) == 0:
-                                    record.append(t_read)
-                                temp = attr['temperature']
-                                t = float(temp)
-                                if t < 0 or t > 200:
-                                    print(f"ERROR at {t_read}: {json.dumps(item, indent=4)}", file=ef)
-                                    temp = t_last
-                                record.append(temp)
-                                t_last = temp
-                if len(record) == 0:
-                    print(*header, file=f, sep=",", end="\n", flush=True)
-                else:
-                    print(*record, file=f, sep=",", end="\n", flush=True)
+            try:
+                with urllib.request.urlopen(req) as response:
+                    record = []
+                    page = response.read()
+                    t_read = time.strftime('%m/%d/%Y %H:%M:%S')
+                    #print(f"response = {page}")
+                    data = json.loads(page.decode('utf-8'))
+                    #print(json.dumps(data[0], indent=4))
+                    for item in data:
+                        if 'label' in item and 'attributes' in item:
+                            label = item['label']
+                            attr = item['attributes']
+                            if 'temperature' in attr:
+                                if not label in header:
+                                    header.append(label)
+                                    #print(f"header = {header}")
+                                else:
+                                    if len(record) == 0:
+                                        record.append(t_read)
+                                    temp = attr['temperature']
+                                    t = float(temp)
+                                    if t < 0 or t > 200:
+                                        print(f"ERROR at {t_read}: {json.dumps(item, indent=4)}", file=ef)
+                                        temp = t_last
+                                    record.append(temp)
+                                    t_last = temp
+                    if len(record) == 0:
+                        print(*header, file=f, sep=",", end="\n", flush=True)
+                    else:
+                        print(*record, file=f, sep=",", end="\n", flush=True)
+
+            except(e):
+                print(f"RETRY url open/read", file=ef, flush=True)
+                time.sleep(3)
 
             time.sleep(300)
+
             #os.system(f"cat {fn}")
 
 if __name__ == '__main__':
