@@ -10,7 +10,8 @@ CSV_DIR = '/var/log/monitoring'
 @app.route('/')
 def home():
     files = os.listdir(CSV_DIR)
-    csv_files = [f for f in files if f.endswith('.csv')]
+    csv_files = [f for f in files if f.endswith('.csv') and os.path.getsize(os.path.join(CSV_DIR, f)) > 0]
+    csv_files.sort(key=lambda f: os.path.getmtime(os.path.join(CSV_DIR, f)), reverse=True)
     return render_template_string('''
         <h1>CSV Interactive Line Graph Generator</h1>
         <form id="file-select-form">

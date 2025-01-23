@@ -1,0 +1,10 @@
+[Unit]
+Description=Home temperature reporting
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /usr/local/bin/plot.py
+
+[Install]
+WantedBy=multi-user.target
