@@ -11,8 +11,8 @@ def monitor():
 
     req =  urllib.request.Request(url)
 
-    fd = '/var/log/monitoring'
-    if not os.path.exists(fd): os.mkdir(fd)
+    fd = os.path.expanduser('~/.logs/monitoring')
+    if not os.path.exists(fd): os.makedirs(fd)
     now = time.strftime('%Y-%m-%d_%H-%M-%S')
     fn = os.path.join(fd, now + '.csv')
     efn = os.path.join(fd, now + '.err')
@@ -53,6 +53,7 @@ def monitor():
                         print(*header, file=f, sep=",", end="\n", flush=True)
                     else:
                         print(*record, file=f, sep=",", end="\n", flush=True)
+                        #print(*record, sep=",", end="\n", flush=True)
 
             except(e):
                 print(f"RETRY url open/read", file=ef, flush=True)

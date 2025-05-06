@@ -5,7 +5,7 @@ import os
 app = Flask(__name__)
 
 # Directory where CSV files are stored
-CSV_DIR = '/var/log/monitoring'
+CSV_DIR = os.path.expanduser('~/.logs/monitoring')
 
 @app.route('/')
 def home():

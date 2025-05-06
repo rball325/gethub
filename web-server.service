@@ -4,7 +4,8 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/python3 /usr/local/bin/plot.py
+#ExecStart=/usr/bin/python3 /usr/local/bin/plot.py
+ExecStart=/bin/bash -c '/usr/bin/python3 "$HOME/Documents/Projects/gethub/plot.py"'
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=default.target
