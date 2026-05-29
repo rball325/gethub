@@ -67,6 +67,7 @@ def monitor():
                 with open(efn, 'a') as ef:
                     print(f"RETRY url open/read", file=ef, flush=True)
                 time.sleep(3)
+                continue
 
             time.sleep(300)
 
