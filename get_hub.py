@@ -55,7 +55,7 @@ def monitor():
                         print(*record, file=f, sep=",", end="\n", flush=True)
                         #print(*record, sep=",", end="\n", flush=True)
 
-            except(e):
+            except Exception as e:
                 print(f"RETRY url open/read", file=ef, flush=True)
                 time.sleep(3)
 
