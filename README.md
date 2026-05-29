@@ -2,7 +2,7 @@
 
 This repository has code for 2 system services:
 
-1. monitoring: Periodically (every 5 minutes) read temperatures from a Hubitat device at a fixed IP.
+1. monitoring: Periodically (every 5 minutes) read temperatures from a Hubitat device at hubitat.local (discovered via mDNS).
 2. web-server: Provide a web server that allows a browser (on the local network only) to list the available data files, choose a file, and plot it.
 
 The 'get_hub.py file is used by 'monitoring.service' to read the hub data and append to a csv file.
