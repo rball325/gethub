@@ -13,13 +13,20 @@ def monitor():
 
     fd = os.path.expanduser('~/.logs/monitoring')
     if not os.path.exists(fd): os.makedirs(fd)
+
+    t_last = '75'
+
+    # Wait until the next 5-minute boundary (MM:00 where MM % 5 == 0)
+    now_t = time.localtime()
+    secs_past = (now_t.tm_min % 5) * 60 + now_t.tm_sec
+    if secs_past != 0:
+        time.sleep(300 - secs_past)
+
     now = time.strftime('%Y-%m-%d_%H-%M-%S')
     fn = os.path.join(fd, now + '.csv')
     efn = os.path.join(fd, now + '.err')
 #    fn = 'test.csv'
 #    efn = 'test.err'
-
-    t_last = '75'
 
     with open(fn, 'w') as f, open(efn, 'w') as ef:
         while True:
