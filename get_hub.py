@@ -28,6 +28,7 @@ def monitor():
 #    fn = 'test.csv'
 #    efn = 'test.err'
 
+    retries = 0
     with open(fn, 'w') as f:
         while True:
             try:
@@ -62,14 +63,18 @@ def monitor():
                     else:
                         print(*record, file=f, sep=",", end="\n", flush=True)
                         #print(*record, sep=",", end="\n", flush=True)
+                    retries = 0
 
             except Exception as e:
+                retries += 1
                 with open(efn, 'a') as ef:
-                    print(f"RETRY url open/read", file=ef, flush=True)
-                time.sleep(3)
-                continue
+                    print(f"RETRY {retries} url open/read", file=ef, flush=True)
+                if retries < 100:
+                    time.sleep(3)
+                    continue
 
             time.sleep(300)
+            retries = 0
 
             #os.system(f"cat {fn}")
 
