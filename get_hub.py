@@ -28,7 +28,7 @@ def monitor():
 #    fn = 'test.csv'
 #    efn = 'test.err'
 
-    with open(fn, 'w') as f, open(efn, 'w') as ef:
+    with open(fn, 'w') as f:
         while True:
             try:
                 with urllib.request.urlopen(req) as response:
@@ -52,7 +52,8 @@ def monitor():
                                     temp = attr['temperature']
                                     t = float(temp)
                                     if t < 0 or t > 200:
-                                        print(f"ERROR at {t_read}: {json.dumps(item, indent=4)}", file=ef)
+                                        with open(efn, 'a') as ef:
+                                            print(f"ERROR at {t_read}: {json.dumps(item, indent=4)}", file=ef)
                                         temp = t_last
                                     record.append(temp)
                                     t_last = temp
@@ -63,7 +64,8 @@ def monitor():
                         #print(*record, sep=",", end="\n", flush=True)
 
             except Exception as e:
-                print(f"RETRY url open/read", file=ef, flush=True)
+                with open(efn, 'a') as ef:
+                    print(f"RETRY url open/read", file=ef, flush=True)
                 time.sleep(3)
 
             time.sleep(300)
