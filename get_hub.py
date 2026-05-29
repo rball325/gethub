@@ -7,7 +7,7 @@ def monitor():
     header = []
     header.append('@Time') # must be alphabetically first, due to how Flask jsonify works!
 
-    url = 'http://192.168.0.108/apps/api/129/devices/all?access_token=6dfc126c-428a-4984-9db9-bb483eb01cf3'
+    url = 'http://hubitat.local/apps/api/129/devices/all?access_token=6dfc126c-428a-4984-9db9-bb483eb01cf3'
 
     req =  urllib.request.Request(url)
 
