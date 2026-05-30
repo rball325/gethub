@@ -68,7 +68,7 @@ def monitor():
             except Exception as e:
                 retries += 1
                 with open(efn, 'a') as ef:
-                    print(f"RETRY {retries} url open/read", file=ef, flush=True)
+                    print(f"{time.strftime('%m/%d/%Y %H:%M:%S')} RETRY {retries}: {e}", file=ef, flush=True)
                 if retries < 100:
                     time.sleep(3)
                     continue
