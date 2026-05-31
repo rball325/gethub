@@ -1,4 +1,5 @@
 import os
+import ssl
 import urllib.request
 import json
 import time
@@ -7,9 +8,12 @@ def monitor():
     header = []
     header.append('@Time') # must be alphabetically first, due to how Flask jsonify works!
 
-    url = 'http://hubitat.local/apps/api/129/devices/all?access_token=6dfc126c-428a-4984-9db9-bb483eb01cf3'
+    url = 'https://hubitat.local/apps/api/129/devices/all?access_token=6dfc126c-428a-4984-9db9-bb483eb01cf3'
 
-    req =  urllib.request.Request(url)
+    ssl_ctx = ssl.create_default_context()
+    ssl_ctx.check_hostname = False
+    ssl_ctx.verify_mode = ssl.CERT_NONE
+    req = urllib.request.Request(url)
 
     fd = os.path.expanduser('~/.logs/monitoring')
     if not os.path.exists(fd): os.makedirs(fd)
@@ -32,7 +36,7 @@ def monitor():
     with open(fn, 'w') as f:
         while True:
             try:
-                with urllib.request.urlopen(req) as response:
+                with urllib.request.urlopen(req, context=ssl_ctx) as response:
                     record = []
                     page = response.read()
                     t_read = time.strftime('%m/%d/%Y %H:%M:%S')
