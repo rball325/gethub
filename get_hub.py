@@ -1,4 +1,5 @@
 import os
+import socket
 import ssl
 import urllib.request
 import json
@@ -8,7 +9,8 @@ def monitor():
     header = []
     header.append('@Time') # must be alphabetically first, due to how Flask jsonify works!
 
-    url = 'https://hubitat.local/apps/api/129/devices/all?access_token=6dfc126c-428a-4984-9db9-bb483eb01cf3'
+    hub_ip = socket.gethostbyname('hubitat.local')
+    url = f'https://{hub_ip}/apps/api/129/devices/all?access_token=6dfc126c-428a-4984-9db9-bb483eb01cf3'
 
     ssl_ctx = ssl.create_default_context()
     ssl_ctx.check_hostname = False
