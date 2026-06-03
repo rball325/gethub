@@ -53,10 +53,14 @@ def home():
                     name: key
                 }));
 
+                const parts = selectedFile.replace('.csv', '').split('_');
+                const monthNames = ['January','February','March','April','May','June',
+                                    'July','August','September','October','November','December'];
+                const title = monthNames[parseInt(parts[1], 10) - 1] + ' ' + parts[0];
+
                 const layout = {
-                    title: 'Interactive Line Graph',
+                    title: title,
                     xaxis: {
-                        title: Object.keys(data)[0],
                         tickangle: -45,
                         automargin: true
                     },
