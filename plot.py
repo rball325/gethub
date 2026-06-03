@@ -56,11 +56,14 @@ def home():
                 const layout = {
                     title: 'Interactive Line Graph',
                     xaxis: {
-                        title: Object.keys(data)[0]
+                        title: Object.keys(data)[0],
+                        tickangle: -45,
+                        automargin: true
                     },
                     yaxis: {
                         title: 'Values'
-                    }
+                    },
+                    margin: { b: 120 }
                 };
 
                 Plotly.newPlot('graph', traces, layout);
