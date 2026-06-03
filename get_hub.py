@@ -34,12 +34,13 @@ def monitor():
 
     fd = os.path.expanduser('~/.logs/monitoring')
     if not os.path.exists(fd): os.makedirs(fd)
-    now = time.strftime('%Y-%m-%d_%H-%M-%S')
-    fn  = os.path.join(fd, now + '.csv')
-    efn = os.path.join(fd, now + '.err')
+    fn  = os.path.join(fd, time.strftime('%Y_%m') + '.csv')
+    efn = os.path.join(fd, time.strftime('%Y_%m') + '.err')
 
-    with open(fn, 'w') as f:
-        print(*header, file=f, sep=',', flush=True)
+    new_file = not os.path.exists(fn) or os.path.getsize(fn) == 0
+    with open(fn, 'a') as f:
+        if new_file:
+            print(*header, file=f, sep=',', flush=True)
 
         def on_message(ws, message):
             try:
