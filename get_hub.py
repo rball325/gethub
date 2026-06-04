@@ -75,7 +75,8 @@ def monitor():
                                         on_message=on_message,
                                         on_error=on_error,
                                         on_close=on_close)
-        ws_app.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE}, reconnect=5)
+        ws_app.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE}, reconnect=5,
+                           ping_interval=60, ping_timeout=10)
 
 if __name__ == '__main__':
     monitor()
