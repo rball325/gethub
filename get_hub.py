@@ -34,49 +34,66 @@ def monitor():
 
     fd = os.path.expanduser('~/.logs/monitoring')
     if not os.path.exists(fd): os.makedirs(fd)
-    fn  = os.path.join(fd, time.strftime('%Y_%m') + '.csv')
-    efn = os.path.join(fd, time.strftime('%Y_%m') + '.err')
 
-    new_file = not os.path.exists(fn) or os.path.getsize(fn) == 0
-    with open(fn, 'a') as f:
-        if new_file:
-            print(*header, file=f, sep=',', flush=True)
+    state = {'month': None, 'f': None}
 
-        def on_message(ws, message):
-            try:
-                event = json.loads(message)
-                if event.get('name') != 'temperature' or event.get('source') != 'DEVICE':
-                    return
-                label = event.get('displayName')
-                value = event.get('value')
-                if label not in current:
-                    return
-                t = float(value)
-                if t < 0 or t > 200:
-                    with open(efn, 'a') as ef:
-                        print(f"{time.strftime('%m/%d/%Y %H:%M:%S')} ERROR {label}: {value}", file=ef, flush=True)
-                    return
-                current[label] = value
-                record = [time.strftime('%m/%d/%Y %H:%M:%S')] + [current[h] for h in header[1:]]
-                print(*record, file=f, sep=',', end='\n', flush=True)
-            except Exception as e:
-                with open(efn, 'a') as ef:
-                    print(f"{time.strftime('%m/%d/%Y %H:%M:%S')} ERROR: {e}", file=ef, flush=True)
+    def current_efn():
+        return os.path.join(fd, time.strftime('%Y_%m') + '.err')
 
-        def on_error(ws, error):
-            with open(efn, 'a') as ef:
-                print(f"{time.strftime('%m/%d/%Y %H:%M:%S')} WS ERROR: {error}", file=ef, flush=True)
+    def get_file():
+        month = time.strftime('%Y_%m')
+        if month != state['month']:
+            if state['f'] is not None:
+                state['f'].close()
+            fn = os.path.join(fd, month + '.csv')
+            new_file = not os.path.exists(fn) or os.path.getsize(fn) == 0
+            f = open(fn, 'a')
+            if new_file:
+                print(*header, file=f, sep=',', flush=True)
+            state['month'] = month
+            state['f'] = f
+        return state['f']
 
-        def on_close(ws, close_status_code, close_msg):
-            with open(efn, 'a') as ef:
-                print(f"{time.strftime('%m/%d/%Y %H:%M:%S')} WS CLOSED: {close_status_code} {close_msg}", file=ef, flush=True)
+    get_file()
 
-        ws_app = websocket.WebSocketApp(ws_url,
-                                        on_message=on_message,
-                                        on_error=on_error,
-                                        on_close=on_close)
-        ws_app.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE}, reconnect=5,
-                           ping_interval=60, ping_timeout=10)
+    def on_message(ws, message):
+        try:
+            event = json.loads(message)
+            if event.get('name') != 'temperature' or event.get('source') != 'DEVICE':
+                return
+            label = event.get('displayName')
+            value = event.get('value')
+            if label not in current:
+                return
+            t = float(value)
+            if t < 0 or t > 200:
+                with open(current_efn(), 'a') as ef:
+                    print(f"{time.strftime('%m/%d/%Y %H:%M:%S')} ERROR {label}: {value}", file=ef, flush=True)
+                return
+            current[label] = value
+            f = get_file()
+            record = [time.strftime('%m/%d/%Y %H:%M:%S')] + [current[h] for h in header[1:]]
+            print(*record, file=f, sep=',', end='\n', flush=True)
+        except Exception as e:
+            with open(current_efn(), 'a') as ef:
+                print(f"{time.strftime('%m/%d/%Y %H:%M:%S')} ERROR: {e}", file=ef, flush=True)
+
+    def on_error(ws, error):
+        with open(current_efn(), 'a') as ef:
+            print(f"{time.strftime('%m/%d/%Y %H:%M:%S')} WS ERROR: {error}", file=ef, flush=True)
+
+    def on_close(ws, close_status_code, close_msg):
+        with open(current_efn(), 'a') as ef:
+            print(f"{time.strftime('%m/%d/%Y %H:%M:%S')} WS CLOSED: {close_status_code} {close_msg}", file=ef, flush=True)
+
+    ws_app = websocket.WebSocketApp(ws_url,
+                                    on_message=on_message,
+                                    on_error=on_error,
+                                    on_close=on_close)
+    ws_app.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE}, reconnect=5,
+                       ping_interval=60, ping_timeout=10)
+    if state['f'] is not None:
+        state['f'].close()
 
 if __name__ == '__main__':
     monitor()
